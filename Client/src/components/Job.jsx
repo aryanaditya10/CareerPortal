@@ -19,6 +19,10 @@ const Job = ({ job }) => {
     }
 
 
+    const matchPercentage = job?.matchScore !== undefined && job?.matchScore !== null
+        ? Math.min(100, Math.round(job.matchScore * 100))
+        : null
+
     return (
         <div className='p-5 rounded-md shadow-xl bg-white border border-gray-100 hover:scale-105 transition-all duration-500 h-full flex flex-col'>
             <div className='flex justify-between items-center'>
@@ -43,7 +47,14 @@ const Job = ({ job }) => {
             </div>
 
             <div className=''>
-                <h1 className='font-bold text-lg my-2 '>{job?.title}</h1>
+                <div className='flex items-center justify-between gap-4'>
+                    <h1 className='font-bold text-lg my-2 '>{job?.title}</h1>
+                    {matchPercentage !== null && (
+                        <Badge className='text-green-700 font-bold bg-green-100 border-none'>
+                            {matchPercentage}% match
+                        </Badge>
+                    )}
+                </div>
                 <p className='text-sm text-gray-600'>{job?.description}</p>
 
             </div>

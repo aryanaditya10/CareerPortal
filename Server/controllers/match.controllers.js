@@ -50,7 +50,7 @@ export const getBestJobsForUser = async (req, res) => {
                     path: "jobEmbedding",
                     queryVector: userEmbedding,
                     numCandidates: 100,
-                    limit: 10
+                    limit: 5
                 }
             },
             {

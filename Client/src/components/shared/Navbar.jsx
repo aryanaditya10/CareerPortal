@@ -63,6 +63,7 @@ const Navbar = () => {
                                         <motion.li onClick={resetQuery}><Link to="/">Home</Link></motion.li>
                                         <li><Link to="/jobs">Jobs</Link></li>
                                         <li onClick={resetQuery}><Link to="/browse">Browse</Link></li>
+                                        <li><Link to="/matches">Matches</Link></li>
                                     </>
                                 )
                         }
@@ -186,6 +187,11 @@ const Navbar = () => {
                                                             className='flex items-center gap-3 cursor-pointer'>
                                                             <SearchCheck />
                                                             <p className='text-lg font-medium' to="/admin/jobs">Browse</p>
+                                                        </div>
+
+                                                        <div onClick={() => navigate("/matches")} className='flex items-center gap-3 cursor-pointer'>
+                                                            <SearchCheck />
+                                                            <p className='text-lg font-medium'>Matches</p>
                                                         </div>
                                                     </div>
 

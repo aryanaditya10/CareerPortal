@@ -11,11 +11,13 @@ import { useSelector } from 'react-redux';
 import useGetAppliedJobs from '@/hooks/useGetAppliedJobs';
 import Footer from './shared/Footer';
 import { motion } from "framer-motion"
+import { useNavigate } from 'react-router-dom';
 const skills = ["HTML", "CSS", "JAVASCRIPT", "REACTJS"];
 
 
 function Profile() {
 
+    const navigate = useNavigate()
     useGetAppliedJobs();
 
     const [open, setOpen] = useState(false)
@@ -91,6 +93,11 @@ function Profile() {
                             }
                         </div>
 
+                        {user?.role === 'student' && (
+                            <div className='mt-4'>
+                                <Button onClick={() => navigate('/matches')} className='bg-[#6A38C2] hover:bg-[#5b30a6]'>See Best Matches</Button>
+                            </div>
+                        )}
                     </div>
 
                 </div>
