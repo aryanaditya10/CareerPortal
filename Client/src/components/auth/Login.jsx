@@ -32,6 +32,12 @@ const Login = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault()
+
+    if (!input.email || !input.password || !input.role) {
+      toast.error("Please fill all fields before logging in.");
+      return;
+    }
+
     try {
       dispatch(setLoading(true));
       const response = await axios.post(`${USER_API_END_POINT}/login`, input, {
@@ -44,11 +50,14 @@ const Login = () => {
         dispatch(setUser(response.data.user));
         navigate("/");
         toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message || "Login failed. Please try again.");
       }
 
     } catch (error) {
       console.log(error.message);
-      toast.error(error.response.data.message)
+      const msg = error?.response?.data?.message || error.message || "Login failed. Please try again.";
+      toast.error(msg);
     } finally {
       dispatch(setLoading(false));
     }

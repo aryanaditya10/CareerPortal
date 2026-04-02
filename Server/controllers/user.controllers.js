@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
+import { generateEmbedding } from "../utils/generateEmbedding.js";
+import { extractPdfText } from "../utils/extractPdfText.js";
 
 export const register = async (req, res) => {
     try {
@@ -52,7 +54,8 @@ export const register = async (req, res) => {
         })
 
     } catch (error) {
-        console.log(error)
+        console.error(error);
+        return res.status(500).json({ message: 'Internal Server Error', success: false });
     }
 }
 
@@ -103,7 +106,7 @@ export const login = async (req, res) => {
 
         return res.status(200).cookie("token", token,
             {
-                maxAge: 1 * 24 * 60 * 60 * 1000, 
+                maxAge: 1 * 24 * 60 * 60 * 1000,
                 httpOnly: true,
                 sameSite: 'none',
                 secure: true
@@ -116,7 +119,8 @@ export const login = async (req, res) => {
 
 
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        return res.status(500).json({ message: 'Internal Server Error', success: false });
     }
 }
 
@@ -148,7 +152,8 @@ export const updateProfile = async (req, res) => {
         if (file) {
             const fileUri = getDataUri(file);
             cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
-                resource_type: 'auto',
+                resource_type: 'raw',
+                public_id: file.originalname
             });
         }
 
@@ -179,6 +184,15 @@ export const updateProfile = async (req, res) => {
         if (file && cloudResponse) {
             user.profile.resume = cloudResponse.secure_url;
             user.profile.resumeOriginalName = file.originalname;
+
+            // Generate embedding if it's a PDF
+            if (file.mimetype === "application/pdf") {
+                const resumeText = await extractPdfText(file.buffer);
+                if (resumeText) {
+                    const resumeEmbedding = await generateEmbedding(resumeText);
+                    user.profile.resumeEmbedding = resumeEmbedding;
+                }
+            }
         }
 
         await user.save();
@@ -202,7 +216,8 @@ export const updateProfile = async (req, res) => {
 
 
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        return res.status(500).json({ message: 'Internal Server Error', success: false });
     }
 }
 

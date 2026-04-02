@@ -1,4 +1,5 @@
 import { Job } from "../models/job.models.js";
+import { generateEmbedding } from "../utils/generateEmbedding.js";
 
 
 // role === "recruiter"
@@ -16,6 +17,9 @@ export const postJob = async (req, res) => {
             })
         }
 
+        const combinedText = `${title} ${description} ${requirements}`;
+        const jobEmbedding = await generateEmbedding(combinedText);
+
         const job = await Job.create({
             title,
             description,
@@ -27,6 +31,7 @@ export const postJob = async (req, res) => {
             position,
             company: companyId,
             created_by: userId,
+            jobEmbedding,
         });
 
         return res.status(201).json({

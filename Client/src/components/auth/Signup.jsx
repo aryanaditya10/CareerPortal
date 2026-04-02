@@ -41,6 +41,10 @@ const Signup = () => {
   const submitHandler = async (e) => {
     e.preventDefault()
 
+    if (!input.fullname || !input.email || !input.password || !input.phoneNumber || !input.role) {
+      toast.error("Please fill out all required fields.");
+      return;
+    }
 
     const formData = new FormData()
     formData.append("fullname", input.fullname);
@@ -61,15 +65,18 @@ const Signup = () => {
         },
         withCredentials: true,
       });
+
       if (response.data.success) {
-        console.log("rt");
         navigate("/login");
         toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message || "Signup failed. Please try again.");
       }
 
     } catch (error) {
       console.log(error.message);
-      toast.error(error.response.data.message)
+      const msg = error?.response?.data?.message || error.message || "Signup failed. Please try again.";
+      toast.error(msg);
     } finally {
       dispatch(setLoading(false));
     }
