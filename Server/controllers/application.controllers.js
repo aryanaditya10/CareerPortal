@@ -1,5 +1,6 @@
 import { Application } from "../models/application.models.js";
 import { Job } from "../models/job.models.js";
+import { io } from "../index.js";
 
 
 // for role === "student"
@@ -133,15 +134,32 @@ export const updateStatus = async (req, res) => {
             })
         }
 
-        const application = await Application.findByIdAndUpdate(applicationId, { status: status.toLowerCase() });
+        const application = await Application.findByIdAndUpdate(applicationId, { status: status.toLowerCase() }, { new: true }).populate('job');
+        if (!application) {
+            return res.status(404).json({
+                message: "Application not found",
+                success: false,
+            });
+        }
+
+        // Emit real-time update to all connected clients
+        io.emit('statusUpdated', {
+            applicationId,
+            status: status.toLowerCase(),
+            jobId: application.job._id
+        });
+
         return res.status(200).json({
             message: "Status updated successfully",
-
             success: true,
         })
 
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false,
+        });
     }
 }
 
