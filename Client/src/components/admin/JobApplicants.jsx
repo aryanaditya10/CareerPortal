@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import Navbar from '../shared/Navbar'
 import JobApplicantsTable from './JobApplicantsTable'
 import axios from 'axios'
-import { backend_url } from '@/utils/constant'
+import { backend_url, APPLICANT_API_END_POINT } from '@/utils/constant'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setAllApplicants } from '@/redux/applicationSlice'
@@ -17,6 +17,13 @@ const JobApplicants = () => {
 
     const { allApplicants } = useSelector(store => store.application)
 
+    // Use a ref to access the latest allApplicants inside socket callbacks
+    // without adding it to the useEffect dependency array
+    const allApplicantsRef = useRef(allApplicants);
+    useEffect(() => {
+        allApplicantsRef.current = allApplicants;
+    }, [allApplicants]);
+
     const getToken = () => {
         const cookies = document.cookie.split(';');
         for (let cookie of cookies) {
@@ -28,23 +35,21 @@ const JobApplicants = () => {
         return null;
     };
 
-    useEffect(() => {
-        const fetchAllApplicants = async () => {
-            try {
-                const response = await axios.get(`${APPLICANT_API_END_POINT}/${jobId}/applicants`, { withCredentials: true });
+    const fetchAllApplicants = useCallback(async () => {
+        try {
+            const response = await axios.get(`${APPLICANT_API_END_POINT}/${jobId}/applicants`, { withCredentials: true });
 
-                if (response.data.success) {
-                    dispatch(setAllApplicants(response.data.job));
-                }
-                // console.log(response.data);
-
-
-            } catch (error) {
-                console.error(error);
+            if (response.data.success) {
+                dispatch(setAllApplicants(response.data.job));
             }
+        } catch (error) {
+            console.error(error);
         }
+    }, [jobId, dispatch]);
+
+    useEffect(() => {
         fetchAllApplicants();
-    }, [])
+    }, [fetchAllApplicants])
 
     useEffect(() => {
         const token = getToken();
@@ -60,9 +65,10 @@ const JobApplicants = () => {
         socket.on('statusUpdated', (data) => {
             // Update the state if the job matches
             if (data.jobId === jobId) {
+                const current = allApplicantsRef.current;
                 const updated = {
-                    ...allApplicants,
-                    applications: allApplicants.applications.map((item) =>
+                    ...current,
+                    applications: current.applications.map((item) =>
                         item._id === data.applicationId ? { ...item, status: data.status } : item
                     )
                 };
@@ -70,10 +76,17 @@ const JobApplicants = () => {
             }
         });
 
+        // When a new application is submitted, re-fetch the full list
+        socket.on('newApplication', (data) => {
+            if (data.jobId === jobId) {
+                fetchAllApplicants();
+            }
+        });
+
         return () => {
             socket.disconnect();
         };
-    }, [jobId, allApplicants, dispatch]);
+    }, [jobId, dispatch, fetchAllApplicants]);
 
     return (
         <div>
