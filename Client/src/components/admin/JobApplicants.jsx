@@ -6,7 +6,6 @@ import { backend_url, APPLICANT_API_END_POINT } from '@/utils/constant'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setAllApplicants } from '@/redux/applicationSlice'
-import { io } from 'socket.io-client'
 
 const JobApplicants = () => {
 
