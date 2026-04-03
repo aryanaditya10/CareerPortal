@@ -2,11 +2,10 @@ import React, { useEffect } from 'react'
 import Navbar from '../shared/Navbar'
 import JobApplicantsTable from './JobApplicantsTable'
 import axios from 'axios'
-import { backend_url } from '@/utils/constant'
+import { APPLICANT_API_END_POINT } from '@/utils/constant'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setAllApplicants } from '@/redux/applicationSlice'
-import { io } from 'socket.io-client'
 
 const JobApplicants = () => {
 
@@ -46,34 +45,6 @@ const JobApplicants = () => {
         fetchAllApplicants();
     }, [])
 
-    useEffect(() => {
-        const token = getToken();
-        if (!token) return;
-
-        // Connect to Socket.io
-        const socket = io(backend_url, {
-            auth: {
-                token
-            }
-        });
-
-        socket.on('statusUpdated', (data) => {
-            // Update the state if the job matches
-            if (data.jobId === jobId) {
-                const updated = {
-                    ...allApplicants,
-                    applications: allApplicants.applications.map((item) =>
-                        item._id === data.applicationId ? { ...item, status: data.status } : item
-                    )
-                };
-                dispatch(setAllApplicants(updated));
-            }
-        });
-
-        return () => {
-            socket.disconnect();
-        };
-    }, [jobId, allApplicants, dispatch]);
 
     return (
         <div>

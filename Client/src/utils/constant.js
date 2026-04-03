@@ -1,4 +1,4 @@
-const backend_url = import.meta.env.VITE_BACKEND_URL || 'http://localhost:9000'
+export const backend_url = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 export const USER_API_END_POINT = `${backend_url}/api/v1/user`
 export const JOB_API_END_POINT = `${backend_url}/api/v1/job`
 export const APPLICANT_API_END_POINT = `${backend_url}/api/v1/application`
