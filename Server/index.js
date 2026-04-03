@@ -1,4 +1,7 @@
 import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -43,13 +46,53 @@ app.get("/",(req,res)=>{
 
 const PORT = process.env.PORT || 8001;
 
+const server = createServer(app);
+const io = new Server(server, {
+    cors: corsOptions,
+});
+
+// Socket.io authentication middleware securely using HttpOnly cookie
+io.use((socket, next) => {
+    try {
+        const cookieHeader = socket.handshake.headers.cookie;
+        if (!cookieHeader) {
+            return next(new Error('Authentication error'));
+        }
+        
+        const tokenStr = cookieHeader.split(';').find(c => c.trim().startsWith('token='));
+        if (!tokenStr) {
+            return next(new Error('Authentication error'));
+        }
+        
+        const token = tokenStr.split('=')[1];
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        socket.userId = decoded.userId;
+        socket.role = decoded.role;
+        next();
+    } catch (err) {
+        next(new Error('Authentication error'));
+    }
+});
+
+// Socket.io connection
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.userId);
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.userId);
+    });
+});
+
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/company", companyRouter);
 app.use("/api/v1/job", jobRouter);
 app.use("/api/v1/application", applicantionRouter);
 app.use("/api/v1/match", matchRouter);
 
-app.listen(PORT, () => {
+// Export io for use in controllers
+export { io };
+
+server.listen(PORT, () => {
     console.log(`Server running at port ${PORT}`);
 });
 

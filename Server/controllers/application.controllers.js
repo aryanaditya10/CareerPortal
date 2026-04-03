@@ -1,5 +1,6 @@
 import { Application } from "../models/application.models.js";
 import { Job } from "../models/job.models.js";
+import { io } from "../index.js";
 
 // for role === "student"
 
@@ -146,6 +147,12 @@ export const updateStatus = async (req, res) => {
             });
         }
 
+        // Emit real-time update to all connected clients
+        io.emit('statusUpdated', {
+            applicationId,
+            status: status.toLowerCase(),
+            jobId: application.job._id
+        });
 
         return res.status(200).json({
             message: "Status updated successfully",

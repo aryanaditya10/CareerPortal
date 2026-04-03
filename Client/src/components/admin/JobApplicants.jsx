@@ -6,6 +6,7 @@ import { backend_url, APPLICANT_API_END_POINT } from '@/utils/constant'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setAllApplicants } from '@/redux/applicationSlice'
+import { io } from 'socket.io-client'
 
 const JobApplicants = () => {
 
@@ -51,14 +52,9 @@ const JobApplicants = () => {
     }, [fetchAllApplicants])
 
     useEffect(() => {
-        const token = getToken();
-        if (!token) return;
-
-        // Connect to Socket.io
+        // Connect to Socket.io with credentials (to send HttpOnly cookies)
         const socket = io(backend_url, {
-            auth: {
-                token
-            }
+            withCredentials: true
         });
 
         socket.on('statusUpdated', (data) => {
