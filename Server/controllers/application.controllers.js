@@ -41,6 +41,12 @@ export const applyJob = async (req, res) => {
         job.applications.push(newApplication._id);
         await job.save();
 
+        // Emit real-time notification to recruiters viewing this job's applicants
+        io.emit('newApplication', {
+            jobId,
+            applicationId: newApplication._id,
+        });
+
         return res.status(201).json({
             message: "Application created successfully",
             success: true,
